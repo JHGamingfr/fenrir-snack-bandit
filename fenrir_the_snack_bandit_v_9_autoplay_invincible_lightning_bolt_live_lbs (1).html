@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fenrir: The Snack Bandit — V9 (Autoplay++, Invincible, ⚡ Bolt Snack)</title>
+  <style>
+    :root{
+      --bg:#0d0f14;--card:#121622;--card2:#171b2a;--txt:#e9edf7;--muted:#a9b3c7;--accent:#ff4655;--good:#25d366;
+      --gold:#ffcc4d;--diamond:#7ee2ff;--celestial:#c29bff;--zombie:#7CFC00;--shadow:0 10px 30px rgba(0,0,0,.35)
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:radial-gradient(1200px 800px at 20% -10%,#1a2034 0%,#0d0f14 60%), #0d0f14;color:var(--txt);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",sans-serif}
+    a{color:inherit}
+    header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,rgba(13,15,20,.85),rgba(13,15,20,.65));backdrop-filter:blur(8px);border-bottom:1px solid #202437}
+    .nav{max-width:1200px;margin:auto;display:flex;align-items:center;gap:16px;padding:12px 16px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.5px}
+    .brand .logo{width:36px;height:36px;border-radius:10px;background:conic-gradient(from 0deg,#ffcc4d,#ff4655,#5b8cff,#00e0a4,#ffcc4d);box-shadow:var(--shadow);display:grid;place-items:center}
+    .brand .logo span{filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+    .nav a.btn{margin-left:auto}
+    .btn{display:inline-grid;place-items:center;padding:10px 14px;border-radius:12px;border:1px solid #2b3050;background:#151a2a;color:#e9edf7;box-shadow:var(--shadow);text-decoration:none;font-weight:700;cursor:pointer}
+    .btn.primary{background:linear-gradient(135deg,#ff4655,#ff7a45);border-color:#ff615a}
+    .btn.outline{background:transparent;border-color:#2b3050}
+    main{max-width:1200px;margin:24px auto;padding:0 16px 140px}
+    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:center}
+    .poster{background:linear-gradient(135deg,#12162a,#161c31);border:1px solid #222844;border-radius:18px;box-shadow:var(--shadow);padding:22px}
+    .title{font-size:clamp(28px,4vw,48px);line-height:1.1;margin:6px 0 8px}
+    .subtitle{color:var(--muted)}
+    .grid-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+    .poster-card{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+    .poster-card .cell{aspect-ratio:4/3;border-radius:14px;background:#0f1320;border:1px solid #222844;display:grid;place-items:center;color:#cfd7f4;position:relative;overflow:hidden}
+    .cell b{position:absolute;left:10px;bottom:8px;font-size:14px;background:rgba(0,0,0,.45);padding:4px 8px;border-radius:10px}
+    .ticker{margin-top:14px;border-radius:12px;border:1px solid #222844;background:#0f1320;padding:8px 10px;overflow:hidden;white-space:nowrap}
+    .ticker span{display:inline-block;padding-left:100%;animation:ticker 20s linear infinite}
+    @keyframes ticker{to{transform:translateX(-100%)}}
+
+    /* Game */
+    .game-wrap{margin-top:36px;background:linear-gradient(180deg,#0e1220,#0b101b);border:1px solid #20263b;border-radius:18px;box-shadow:var(--shadow);padding:16px}
+    .game-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px}
+    .badge{font-size:12px;background:#10162a;border:1px solid #283354;border-radius:20px;padding:6px 10px;color:#cfd7f4}
+    canvas{width:100%;max-width:960px;height:auto;aspect-ratio:16/9;border-radius:14px;border:1px solid #232a43;background:#0a0f1a;display:block;margin:8px auto}
+    .hud{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+    .stat{background:#0f1526;border:1px solid #273052;border-radius:12px;padding:8px 10px}
+    .legend{margin-top:8px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;color:#cfd7f4}
+    .pill{border:1px solid #2b3050;border-radius:999px;padding:6px 10px;background:#11162a}
+    .pill.gold{border-color:#5a4b15;background:linear-gradient(135deg,#1a1406,#2a210a);color:var(--gold)}
+    .pill.diamond{border-color:#1b3c48;background:linear-gradient(135deg,#0c1520,#102232);color:var(--diamond)}
+    .pill.celestial{border-color:#3e2d6e;background:linear-gradient(135deg,#180f2a,#2b1f4a);color:var(--celestial)}
+    .pill.zombie{border-color:#224f22;background:linear-gradient(135deg,#0f1f0f,#1e3b1e);color:var(--zombie)}
+    .pill.lightning{border-color:#3646aa;background:linear-gradient(135deg,#0f1535,#15235b);color:#a9b6ff}
+    .pill.boltsnack{border-color:#6674ff;background:linear-gradient(135deg,#0f133d,#1b2468);color:#bfc7ff}
+
+    /* Mobile D‑Pad */
+    .dpad{position:fixed;right:16px;bottom:16px;display:grid;grid-template-columns:60px 60px 60px;grid-template-rows:60px 60px 60px;gap:8px;opacity:.85}
+    .dpad button{background:#121831;border:1px solid #273052;border-radius:12px;color:#cfd7f4;font-size:22px}
+    .dpad .sp{visibility:hidden}
+    @media (min-width:900px){.dpad{display:none}}
+
+    .sharebar{display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#101522;border:1px solid #26314a;color:#e9edf7;padding:10px 14px;border-radius:10px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .25s ease}
+    .toast.show{opacity:1}
+
+    /* User + Leaderboards */
+    .panel{margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .card{background:#0f1426;border:1px solid #222a46;border-radius:14px;padding:14px}
+    label{font-size:12px;color:#a9b3c7}
+    input[type=text], input[type=number]{width:100%;padding:10px;border-radius:10px;border:1px solid #2b3050;background:#0d1122;color:#e9edf7}
+    .row{display:flex;gap:10px;align-items:center;margin-top:8px}
+    .danger{color:#ff8a8a}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{border-bottom:1px solid #223; padding:6px 8px; font-size:14px}
+    th{color:#a9b3c7;text-align:left}
+
+    .banner{background:#2a1a1a;color:#ffe9a6;border-bottom:1px solid #553; padding:8px 16px; text-align:center}
+
+    /* Cheats panel */
+    details.cheats{margin-top:16px}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .mut{font-size:12px;color:#bcd}
+    .divider{height:1px;background:#223; margin:10px 0}
+  </style>
+</head>
+<body>
+  <header>
+    <div id="envBanner" class="banner" style="display:none">Demo mode: fill Firebase config to enable global leaderboards.</div>
+    <div class="nav">
+      <div class="brand">
+        <div class="logo"><span>🐕‍🦺</span></div>
+        <div>
+          <div style="font-size:14px;color:var(--muted);margin-bottom:2px">MOST WANTED</div>
+          <div>Fenrir: <span style="color:var(--gold)">The Snack Bandit</span> — Live Leaderboards</div>
+        </div>
+      </div>
+      <a href="#game" class="btn primary">▶ Play Game</a>
+      <a href="#lbs" class="btn outline">🏆 Leaderboards</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1 class="title">Steal snacks. Hunt rarities. Climb the leaderboard.</h1>
+        <p class="subtitle">Real‑time global top 10 when Firebase is configured (anonymous auth). Sandbox mode for infinite powers + luck tuning.</p>
+        <div class="grid-cta">
+          <a class="btn primary" href="#game">Start Heist</a>
+          <a class="btn" href="#poster">View Most Wanted Poster</a>
+        </div>
+        <div class="ticker"><span>Gold = 2× • Diamond = 4× • Celestial = 8× • Zombified = 16× • ⚡ Lightning = 34× • ⚡ Bolt Snack = 50× (ultra rare) • E: Juke • V: Brainfreeze (3s) • G: Cheese Tax • Q: Superhero Smash (5m cooldown)</span></div>
+      </div>
+      <div id="poster" class="poster" aria-label="Most Wanted Poster">
+        <div style="font-weight:800;letter-spacing:.08em;color:#ffcc4d">MOST WANTED</div>
+        <div style="font-size:28px;font-weight:900;margin-top:2px">THE SNACK BANDIT</div>
+        <div class="poster-card" title="Drop your images into each cell if you want to customize.">
+          <div class="cell"><b>Fries</b><span style="font-size:40px">🍟</span></div>
+          <div class="cell"><b>Biscuit</b><span style="font-size:40px">🍪</span></div>
+          <div class="cell"><b>Barbecue</b><span style="font-size:40px">🥩</span></div>
+          <div class="cell"><b>Dip</b><span style="font-size:40px">🥣</span></div>
+          <div class="cell"><b>Puck</b><span style="font-size:40px">🏒</span></div>
+          <div class="cell"><b>Popcorn</b><span style="font-size:40px">🍿</span></div>
+        </div>
+        <p class="subtitle" style="margin-top:10px">Emoji are placeholders — swap for your own pics anytime.</p>
+      </div>
+    </section>
+
+    <section id="game" class="game-wrap" aria-label="Game">
+      <div class="game-head">
+        <span class="badge">Mode: <select id="mode"><option value="sneak">Sneak</option><option value="chaos">Chaos</option><option value="sandbox">Sandbox</option></select></span>
+        <span class="badge">Difficulty: <select id="difficulty"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option></select></span>
+        <button id="start" class="btn primary">▶ Start Heist</button>
+        <button id="pause" class="btn">⏸ Pause</button>
+        <button id="reset" class="btn outline">🔁 Reset</button>
+      </div>
+      <canvas id="board" width="960" height="540" aria-label="Fenrir Snack Bandit game area"></canvas>
+      <div class="hud">
+        <div class="stat">Score: <span id="score">0</span></div>
+        <div class="stat">Time: <span id="time">60</span>s</div>
+        <div class="stat">Lives: <span id="lives">3</span></div>
+        <div class="stat">High Score: <span id="hi">0</span></div>
+        <div class="stat" id="last">+0</div>
+        <div class="stat">Wanted: <span id="wanted">⭐</span></div>
+        <div class="stat">Jukes(E): <span id="jukes">5</span></div>
+        <div class="stat">Freeze(V): <span id="freezes">3</span></div>
+        <div class="stat">Cheese(G): <span id="cheese">1</span></div>
+        <div class="stat">Luck: <span id="luckVal">1.0</span>x</div>
+        <div class="stat">Hero(Q): <span id="heroCd">Ready</span></div>
+        <div class="stat">Status: <span id="statusTxt">—</span></div>
+      </div>
+      <div class="legend">
+        <span class="pill">Common 1×</span>
+        <span class="pill gold">Gold 2×</span>
+        <span class="pill diamond">Diamond 4×</span>
+        <span class="pill celestial">Celestial 8×</span>
+        <span class="pill zombie">Zombified 16×</span>
+        <span class="pill lightning">Lightning 34×</span>
+        <span class="pill boltsnack">⚡ Bolt Snack 50×</span>
+      </div>
+      <div class="sharebar">
+        <button id="copyBtn" class="btn">📋 Copy Run Stats</button>
+        <button id="shareBtn" class="btn">💬 Share to Discord</button>
+      </div>
+
+      <details class="cheats">
+        <summary class="btn outline">🛠️ Cheats Panel</summary>
+        <div class="card">
+          <div class="grid">
+            <div>
+              <label>Unlock normal cheats (auto if High Score ≥ 10,000)</label>
+              <div class="row"><button id="tryUnlock" class="btn">🔓 Check Unlock</button><small id="unlockMsg"></small></div>
+            </div>
+            <div>
+              <label>Owner code (grants owner cheats)</label>
+              <div class="row">
+                <input id="ownerCode" placeholder="Enter secret code" />
+                <button id="ownerGrant" class="btn">👑 Grant</button>
+              </div>
+              <small class="mut">Tip: stored locally for this browser only.</small>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div id="normalCheats" style="display:none">
+            <h4>Normal Cheats</h4>
+            <div class="grid">
+              <div>
+                <label>Luck (0–10)</label>
+                <input id="luck" type="number" min="0" max="10" step="0.1" value="1" />
+                <button id="applyLuck" class="btn">✨ Apply Luck</button>
+              </div>
+              <div>
+                <label>Set High Score (≤ 10,000,000)</label>
+                <input id="setHi" type="number" min="0" max="10000000" step="1" />
+                <button id="applyHi" class="btn">⬆️ Save</button>
+              </div>
+              <div>
+                <label>Auto‑Play (5 min cap)</label>
+                <div class="row"><button id="autoStartNormal" class="btn">▶ Start</button><button id="autoStop" class="btn">⏹ Stop</button></div>
+                <label class="mut"><input type="checkbox" id="autoNoDieNormal"/> No‑Die mode</label>
+              </div>
+              <div>
+                <label>Invincible (3 minutes)</label>
+                <div class="row"><button id="inv3m" class="btn">🛡️ Activate</button></div>
+              </div>
+            </div>
+          </div>
+          <div id="ownerCheats" style="display:none">
+            <h4>Owner Cheats</h4>
+            <div class="grid">
+              <div>
+                <label>Owner Luck (any value)</label>
+                <input id="ownerLuck" type="number" step="0.1" value="5" />
+                <button id="applyOwnerLuck" class="btn">💫 Apply</button>
+              </div>
+              <div>
+                <label>Freeze all cops</label>
+                <button id="freezeCops" class="btn">🧊 Freeze (5s)</button>
+              </div>
+              <div>
+                <label>Give Admin Mutation next pickup (34× + boosts + 50 cheese)</label>
+                <button id="giveAdmin" class="btn">🛡️ Grant</button>
+              </div>
+              <div>
+                <label>Change snack emoji (comma‑sep, 6 items)</label>
+                <input id="snackSet" placeholder="e.g. 🍟,🍪,🥩,🥣,🏒,🍿" />
+                <button id="applySnacks" class="btn">🍽️ Apply</button>
+              </div>
+              <div>
+                <label>Auto‑Play (owner)</label>
+                <div class="row"><button id="autoStartOwner" class="btn">▶ Start</button><button class="btn autoStopBtn">⏹ Stop</button></div>
+                <label class="mut"><input type="checkbox" id="autoNoDieOwner" checked/> No‑Die mode</label>
+                <label>Target score (optional)</label>
+                <input id="autoTarget" type="number" min="0" step="1" placeholder="e.g. 100000" />
+              </div>
+              <div>
+                <label>Invincible (toggle)</label>
+                <div class="row"><button id="invToggle" class="btn">🛡️ Toggle</button></div>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="grid">
+              <div>
+                <label>Target User UID (for admin ops)</label>
+                <input id="targetUid" placeholder="some-uid" />
+              </div>
+              <div class="row">
+                <button id="adminBan" class="btn">⛔ Ban</button>
+                <button id="adminKick" class="btn">🚪 Kick (local)</button>
+                <button id="adminSetHi" class="btn">🏅 Set Best High (time/snacks)</button>
+              </div>
+              <small class="mut">Note: Remote admin ops require Firebase + rules permitting admin claims.
+              In demo mode these affect only your local store.</small>
+            </div>
+          </div>
+        </div>
+      </details>
+
+    </section>
+
+    <!-- User + Leaderboards -->
+    <section id="lbs" class="panel">
+      <div class="card">
+        <h3 style="margin:0 0 6px">Profile</h3>
+        <label for="username">Username (3+ chars, clean):</label>
+        <input id="username" type="text" maxlength="24" placeholder="Enter username" />
+        <div class="row">
+          <button id="saveUser" class="btn primary">💾 Save Username</button>
+          <small id="userMsg" class="danger"></small>
+        </div>
+        <div id="banPane" style="display:none;margin-top:10px">
+          <div class="danger" style="font-weight:700">You are banned for inappropriate username.</div>
+          <textarea id="appealText" rows="3" style="width:100%;margin-top:8px;border-radius:10px;border:1px solid #2b3050;background:#0d1122;color:#e9edf7" placeholder="Write your appeal (one chance)"></textarea>
+          <div class="row"><button id="appealBtn" class="btn">📨 Submit Appeal</button><small id="appealMsg"></small></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 6px">Leaderboards</h3>
+        <div class="row" style="gap:18px">
+          <div style="flex:1">
+            <div style="font-weight:700">⏳ Time Survived (Top 10)</div>
+            <table id="timeTable"><thead><tr><th>#</th><th>User</th><th>Time</th></tr></thead><tbody></tbody></table>
+          </div>
+          <div style="flex:1">
+            <div style="font-weight:700">🍪 Most Snacks (Top 10)</div>
+            <table id="snackTable"><thead><tr><th>#</th><th>User</th><th>Snacks</th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Mobile D‑Pad -->
+  <div class="dpad" aria-hidden="true">
+    <span class="sp"></span><button data-d="up">▲</button><span class="sp"></span>
+    <button data-d="left">◀</button><button data-d="down">▼</button><button data-d="right">▶</button>
+    <span class="sp"></span><button data-d="dash">⚡</button><span class="sp"></span>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">Copied!</div>
+
+  <!-- Firebase SDKs (Compat for single-file simplicity). -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore-compat.js"></script>
+
+  <script>
+  // ---------- CONFIG: Fill these with your Firebase project values ----------
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+  };
+  // ------------------------------------------------------------------------
+
+  const envBanner = document.getElementById('envBanner');
+
+  function isConfigValid(cfg){
+    if(!cfg) return false;
+    const badKey = !cfg.apiKey || /YOUR_|^\s*$/.test(cfg.apiKey);
+    const badProj = !cfg.projectId || /YOUR_PROJECT_ID|^\s*$/.test(cfg.projectId);
+    return !(badKey || badProj);
+  }
+
+  // Simple local demo backend using localStorage when Firebase isn't configured or fails
+  const DemoBackend = (()=>{
+    const uidKey = 'fenrir_demo_uid';
+    const usersKey = 'fenrir_demo_users';
+    const store = {
+      get(){ try{return JSON.parse(localStorage.getItem(usersKey)||'{}');}catch(e){return {}} },
+      set(o){ localStorage.setItem(usersKey, JSON.stringify(o)); }
+    };
+    function uid(){ let id=localStorage.getItem(uidKey); if(!id){ id='local-'+Math.random().toString(36).slice(2); localStorage.setItem(uidKey,id);} return id; }
+    function getUser(){ const all=store.get(); return all[uid()]||null; }
+    function setUser(u){ const all=store.get(); all[uid()]=u; store.set(all); }
+    return {
+      mode:'demo',
+      currentUser(){ return { uid: uid() }; },
+      async ensureUserDoc(){ let u=getUser(); if(!u){ u={username: randomUsername(), banned:false, appealUsed:false, best:{time:0,snacks:0}, owner: !!localStorage.getItem('fenrir_owner')}; setUser(u);} usernameEl.value = u.username; },
+      async refreshBanState(){ const u=getUser(); const banned=!!u?.banned; banPane.style.display=banned?'block':'none'; window.__BANNED__=banned; },
+      async saveUsername(name){ const u=getUser(); if(!u) return; u.username=name; setUser(u); },
+      async ban(uidTarget){ if(!uidTarget||uidTarget===this.currentUser().uid){ const u=getUser(); if(!u) return; u.banned=true; setUser(u); return; } const all=store.get(); if(all[uidTarget]){ all[uidTarget].banned=true; store.set(all);} },
+      async submitAppeal(text){ const u=getUser(); if(!u) return {ok:false, msg:'No user'}; if(u.appealUsed) return {ok:false,msg:'Appeal already used.'}; u.appealUsed=true; setUser(u); return {ok:true}; },
+      listenLeaderboards(){
+        const u = store.get();
+        const arr = Object.values(u).filter(x=>x && !x.banned);
+        const timeTop = [...arr].sort((a,b)=> (b.best?.time||0)-(a.best?.time||0)).slice(0,10);
+        const snackTop = [...arr].sort((a,b)=> (b.best?.snacks||0)-(a.best?.snacks||0)).slice(0,10);
+        renderBoard(timeTable, timeTop.map(x=>({data:()=>({username:x.username,best:x.best})})), 'time');
+        renderBoard(snackTable, snackTop.map(x=>({data:()=>({username:x.username,best:x.best})})), 'snacks');
+      },
+      async setOtherUserBest(uidTarget, best){ const all=store.get(); if(!all[uidTarget]) all[uidTarget]={username:'Player',banned:false,best:{time:0,snacks:0}}; all[uidTarget].best=best; store.set(all); },
+      async submitBest(run){ const u=getUser(); if(!u||u.banned) return; const best=u.best||{time:0,snacks:0}; u.best={ time: Math.max(best.time||0, run.timeSurvived), snacks: Math.max(best.snacks||0, run.snacks)}; setUser(u); },
+    };
+  })();
+
+  // Firebase backend
+  const FirebaseBackend = (()=>{
+    let auth=null, db=null, user=null;
+    return {
+      mode:'firebase',
+      async init(){
+        firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth(); db = firebase.firestore();
+        await auth.signInAnonymously();
+        user = auth.currentUser;
+      },
+      currentUser(){ return user; },
+      async ensureUserDoc(){ const docRef = firebase.firestore().collection('users').doc(this.currentUser().uid); const snap = await docRef.get(); if(!snap.exists){ await docRef.set({username: randomUsername(), createdAt: firebase.firestore.FieldValue.serverTimestamp(), banned:false, appealUsed:false, best:{time:0,snacks:0}, owner: !!localStorage.getItem('fenrir_owner')});} const data=(await docRef.get()).data(); usernameEl.value=data.username||''; },
+      async refreshBanState(){ const uref=firebase.firestore().collection('users').doc(this.currentUser().uid); const data=(await uref.get()).data(); const banned=!!data?.banned; banPane.style.display=banned?'block':'none'; window.__BANNED__=banned; },
+      async saveUsername(name){ await firebase.firestore().collection('users').doc(this.currentUser().uid).set({username:name},{merge:true}); },
+      async ban(uidTarget){ const target = uidTarget||this.currentUser().uid; await firebase.firestore().collection('users').doc(target).set({banned:true},{merge:true}); },
+      async submitAppeal(text){ const uref=firebase.firestore().collection('users').doc(this.currentUser().uid); const u=(await uref.get()).data(); if(u.appealUsed) return {ok:false,msg:'Appeal already used.'}; await firebase.firestore().collection('appeals').doc(this.currentUser().uid).set({uid:this.currentUser().uid,text,createdAt: firebase.firestore.FieldValue.serverTimestamp()}); await uref.set({appealUsed:true},{merge:true}); return {ok:true}; },
+      listenLeaderboards(){
+        const db=firebase.firestore();
+        db.collection('users').where('banned','==',false).orderBy('best.time','desc').limit(10).onSnapshot(s=>{ renderBoard(timeTable, s.docs, 'time'); });
+        db.collection('users').where('banned','==',false).orderBy('best.snacks','desc').limit(10).onSnapshot(s=>{ renderBoard(snackTable, s.docs, 'snacks'); });
+      },
+      async setOtherUserBest(uidTarget, best){ await firebase.firestore().collection('users').doc(uidTarget).set({best},{merge:true}); },
+      async submitBest(run){ const uref=firebase.firestore().collection('users').doc(this.currentUser().uid); const snap=await uref.get(); const u=snap.data(); if(u?.banned) return; const best=u?.best||{time:0,snacks:0}; const newBest={time: Math.max(best.time||0, run.timeSurvived), snacks: Math.max(best.snacks||0, run.snacks)}; await uref.set({best:newBest, lastRun: run},{merge:true}); },
+    };
+  })();
+
+  let Backend = null;
+
+  async function initBackend(){
+    if(isConfigValid(firebaseConfig)){
+      try{
+        Backend = FirebaseBackend; envBanner.style.display='none';
+        await Backend.init();
+      }catch(e){
+        console.warn('Firebase init failed, switching to demo mode:', e?.message||e);
+        envBanner.textContent = 'Demo mode: Firebase init failed ('+(e?.message||'')+'). Fill config for global leaderboards.';
+        envBanner.style.display='block';
+        Backend = DemoBackend;
+      }
+    } else {
+      Backend = DemoBackend; envBanner.style.display='block';
+    }
+
+    // Ensure user + leaderboards
+    await Backend.ensureUserDoc();
+    await Backend.refreshBanState();
+    Backend.listenLeaderboards();
+  }
+
+  // ---------- Username & Moderation (UI wiring) ----------
+  const usernameEl = document.getElementById('username');
+  const saveUserBtn = document.getElementById('saveUser');
+  const userMsg = document.getElementById('userMsg');
+  const banPane = document.getElementById('banPane');
+  const appealText = document.getElementById('appealText');
+  const appealBtn = document.getElementById('appealBtn');
+  const appealMsg = document.getElementById('appealMsg');
+
+  const bannedParts = [
+    'fuck','shit','bitch','asshole','dick','cunt','nigg','fag','gaysex','porn','sex','rape','hitler','kkk','isis','terror','cum','sperm','cock','whore','slut','bastard','pussy','twat','wank','tits','boob','anal','orgy'
+  ];
+  function isCleanName(n){
+    const s = (typeof n === 'string' ? n : (n == null ? '' : String(n))).toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(s.length<3) return false;
+    for(const w of bannedParts){ if(w && s.includes(w)) return false; }
+    return true;
+  }
+  function randomUsername(){
+    const adj=['Sneaky','Happy','Swift','Brave','Cheeky','Silky','Fluffy','Spicy','Turbo','Lucky'];
+    const an=['Pup','Fox','Wolf','Hawk','Tiger','Bear','Otter','Moose','Goose','Shark'];
+    return `${adj[Math.floor(Math.random()*adj.length)]}${an[Math.floor(Math.random()*an.length)]}${Math.floor(Math.random()*1000)}`;
+  }
+
+  saveUserBtn.onclick = async ()=>{
+    if(!Backend) return; const name = (usernameEl?.value ?? '').toString().trim();
+    if(!isCleanName(name)){
+      userMsg.textContent = 'Invalid username (3+ chars, no inappropriate words). You are now banned.';
+      await Backend.ban(); await Backend.refreshBanState();
+      return;
+    }
+    userMsg.textContent=''; await Backend.saveUsername(name); toast('Username saved');
+  };
+
+  appealBtn.onclick = async ()=>{
+    if(!Backend) return; const txt=(appealText.value||'').trim(); if(!txt){ appealMsg.textContent='Please write a brief appeal.'; return; }
+    const res = await Backend.submitAppeal(txt); appealMsg.textContent = res.ok? 'Appeal submitted. An admin will review.' : (res.msg||'Appeal failed');
+  };
+
+  // ---------- Leaderboards (render helper) ----------
+  const timeTable = document.querySelector('#timeTable tbody');
+  const snackTable = document.querySelector('#snackTable tbody');
+  function renderBoard(tbody, docs, valueField){
+    tbody.innerHTML=''; let rank=1;
+    docs.forEach(d=>{
+      const u=d.data(); const v=(u.best && typeof u.best[valueField]==='number')?u.best[valueField]:0;
+      const tr=document.createElement('tr'); tr.innerHTML=`<td>${rank++}</td><td>${u.username||'Player'}</td><td>${valueField==='time'? v.toFixed(1)+'s': v}</td>`; tbody.appendChild(tr);
+    });
+  }
+  </script>
+
+  <!-- Game + Cheats -->
+  <script>
+  const cv = document.getElementById('board');
+  const cx = cv.getContext('2d');
+  const ui = (id)=>document.getElementById(id);
+  const scoreEl = ui('score'), timeEl = ui('time'), livesEl = ui('lives'), hiEl = ui('hi'), lastEl = ui('last'), wantedEl = ui('wanted');
+  const jukesEl = ui('jukes'), freezesEl = ui('freezes'), cheeseEl = ui('cheese'), luckEl = ui('luckVal'), heroCdEl = ui('heroCd'), statusTxt = ui('statusTxt');
+  const startBtn = ui('start'), pauseBtn = ui('pause'), resetBtn = ui('reset');
+  const modeSel = ui('mode'), diffSel = ui('difficulty');
+  const copyBtn = ui('copyBtn'), shareBtn = ui('shareBtn');
+  const toastEl = ui('toast');
+
+  // Cheats panel elements
+  const normalWrap = ui('normalCheats');
+  const ownerWrap = ui('ownerCheats');
+  const tryUnlockBtn = ui('tryUnlock');
+  const unlockMsg = ui('unlockMsg');
+  const ownerCodeEl = ui('ownerCode');
+  const ownerGrantBtn = ui('ownerGrant');
+  const luckInput = ui('luck');
+  const applyLuckBtn = ui('applyLuck');
+  const ownerLuck = ui('ownerLuck');
+  const applyOwnerLuck = ui('applyOwnerLuck');
+  const setHi = ui('setHi');
+  const applyHi = ui('applyHi');
+  const freezeCopsBtn = ui('freezeCops');
+  const giveAdminBtn = ui('giveAdmin');
+  const snackSet = ui('snackSet');
+  const applySnacks = ui('applySnacks');
+  const targetUid = ui('targetUid');
+  const adminBan = ui('adminBan');
+  const adminKick = ui('adminKick');
+  const adminSetHi = ui('adminSetHi');
+  // Auto controls
+  const autoStartNormal = ui('autoStartNormal');
+  const autoStartOwner = ui('autoStartOwner');
+  const autoStopBtn = document.getElementById('autoStop');
+  const autoNoDieNormal = ui('autoNoDieNormal');
+  const autoNoDieOwner = ui('autoNoDieOwner');
+  const autoTargetInput = ui('autoTarget');
+  const inv3mBtn = ui('inv3m');
+  const invToggleBtn = ui('invToggle');
+
+  // Tuning knobs
+  const KEEP_RATE = 0.9;
+  const SPEED_MARGIN = 0.35;       // dog faster than fastest cop
+  const STAR_PERIOD = 15;          // wanted star interval
+  const JUKE_MAX = 5;              // E uses
+  const FREEZE_MAX = 3;            // V uses
+  const FREEZE_TIME = 3;           // sec
+  const CHEESE_MAX = 1;            // G uses
+  const CHEESE_STUN = 3;           // sec
+  const CHEESE_PLAYER_BOOST = 0.35;
+  const GOLD_BOOST = {amt:0.18, time:3.5};
+  const DIAMOND_BOOST = {amt:0.32, time:4};
+  const CELESTIAL_BOOST = {amt:0.7, time:5};
+  const LIGHTNING_BOOST = {amt:1.0, time:6};
+  const ADMIN_BOOST = {amt:1.2, time:8}; // owner Admin mutation extra boost
+  const HERO_COOLDOWN = 300; // 5 minutes
+  // Auto‑play settings
+  let autoPlay=false, autoEndAt=0, autoNoDie=false, autoTargetGoal=null;
+
+  const W = cv.width, H = cv.height;
+  let EMO = { fenrir:'🐕', chaser:'👮', swirl:'🌀', snow:'🍦', cheese:'🧀', cape:'🦸', sword:'🗡️', snacks:[
+    {e:'🍟',name:'Fries',base:10},
+    {e:'🍪',name:'Biscuit',base:12},
+    {e:'🥩',name:'Steak',base:20},
+    {e:'🥣',name:'Dip',base:14},
+    {e:'🏒',name:'Puck',base:15},
+    {e:'🍿',name:'Popcorn',base:16}
+  ]};
+
+  const RARITY = [
+    {key:'common', label:'Common', mult:1, color:'#cfd7f4'},
+    {key:'gold', label:'Gold', mult:2, color:getComputedStyle(document.documentElement).getPropertyValue('--gold')||'#ffcc4d'},
+    {key:'diamond', label:'Diamond', mult:4, color:getComputedStyle(document.documentElement).getPropertyValue('--diamond')||'#7ee2ff'},
+    {key:'celestial', label:'Celestial', mult:8, color:getComputedStyle(document.documentElement).getPropertyValue('--celestial')||'#c29bff'},
+    {key:'zombie', label:'Zombified', mult:16, color:getComputedStyle(document.documentElement).getPropertyValue('--zombie')||'#7CFC00'},
+    {key:'lightning', label:'Lightning', mult:34, color:'#a9b6ff'},
+    {key:'boltsnack', label:'Bolt Snack', mult:50, color:'#bfc7ff'}
+  ];
+
+  // Base spawn chances per spec
+  const BASE_WEIGHTS = {common:0.5891, gold:0.30, diamond:0.10, celestial:0.01, zombie:0.0005, lightning:0.0002, boltsnack:0.0002};
+  let luck = 1.0; // global luck multiplier; cheats can raise this
+  let adminNextPickup = false;
+
+  // Lightning TTS helper
+  function speak(txt){
+    try{ const u = new SpeechSynthesisUtterance(txt); u.rate=1.0; u.pitch=1.0; speechSynthesis.speak(u);}catch(e){}
+  }
+
+  const SFX = {
+    ctx:new (window.AudioContext||window.webkitAudioContext)(),
+    tone(freq=600,len=0.06,type='triangle',vol=0.05){ const o=this.ctx.createOscillator(), g=this.ctx.createGain(); o.frequency.value=freq; o.type=type; g.gain.value=vol; o.connect(g); g.connect(this.ctx.destination); o.start(); setTimeout(()=>o.stop(), len*1000); },
+    spin(){ this.tone(900,0.08,'sawtooth',0.06); this.tone(700,0.08,'triangle',0.05); this.tone(500,0.08,'square',0.05); },
+    freeze(){ this.tone(400,0.12,'triangle',0.06); this.tone(600,0.09,'triangle',0.05); },
+    cheese(){ this.tone(250,0.12,'square',0.06); this.tone(300,0.12,'square',0.06); },
+    pickup(p){ this.tone(600+p*2,0.07,'sawtooth',0.05); },
+    star(){ this.tone(950,0.08,'square',0.06); },
+    hit(){ this.tone(180,0.12,'square',0.07); this.tone(140,0.14,'square',0.06); },
+    hero(){ this.tone(1200,0.18,'square',0.08); this.tone(900,0.18,'square',0.06); }
+  };
+
+  const state = {
+    running:false, paused:false, over:false, t:60, score:0, lives:3,
+    player:{x:120,y:H/2, vx:0, vy:0, baseSpeed:3.2, speed:3.2, dash:0, boost:0, boostT:0, inv:0, spinT:0, heroCd:0, heroT:0},
+    enemies:[], snacks:[], cheeses:[],
+    pickups:{Fries:0,Biscuit:0,Steak:0,Dip:0,Puck:0,Popcorn:0, Celestial:0, Zombie:0},
+    rareCounts:{gold:0,diamond:0,celestial:0,zombie:0,lightning:0,boltsnack:0},
+    wantedLevel:1, wantedTimer:0, maxWanted:5,
+    uses:{juke:5, freeze:3, cheese:1}
+  };
+
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+  function weightedChoice(weights){
+    const entries = Object.entries(weights);
+    const total = entries.reduce((s,[,w])=>s+w,0);
+    let r = Math.random()*total;
+    for(const [k,w] of entries){ r-=w; if(r<=0) return k; }
+    return entries[entries.length-1][0];
+  }
+
+  function getWeights(){
+    // Luck scales rare tiers, preserving total by reducing common
+    const w = {...BASE_WEIGHTS};
+    const scale = (k, mult)=>{ w[k] = Math.min(1, w[k]*mult); };
+    const L = Math.max(0, luck);
+    scale('gold', 1+0.15*L);
+    scale('diamond', 1+0.12*L);
+    scale('celestial', 1+0.10*L);
+    scale('zombie', 1+0.08*L);
+    scale('lightning', 1+0.05*L);
+    scale('boltsnack', 1+0.03*L);
+    const rareSum = w.gold+w.diamond+w.celestial+w.zombie+w.lightning+w.boltsnack;
+    w.common = Math.max(0.0001, 1 - rareSum); // normalize
+    return w;
+  }
+
+  function chooseRarity(){
+    if(adminNextPickup){ adminNextPickup=false; return 'admin'; }
+    return weightedChoice(getWeights());
+  }
+
+  function spawnSnack(){
+    const x = 80 + Math.random()*(W-160);
+    const y = 60 + Math.random()*(H-120);
+    const k = Math.floor(Math.random()*EMO.snacks.length);
+    const rarity = chooseRarity();
+    const ttl = 12 + Math.random()*12;
+    state.snacks.push({x,y,k,ttl,rarity});
+    if(rarity==='boltsnack' || rarity==='lightning'){
+      toast('Lightning bolt snack has spawned! ⚡');
+      speak('Lightning bolt snack has spawned!');
+    }
+  }
+
+  function spawnEnemy(isHighLevel=false){
+    const speedBase = {easy:2.1, normal:2.6, hard:3.1}[diffSel.value];
+    const levelBonus = isHighLevel ? state.wantedLevel * 0.55 : 0;
+    const x = W-80, y = 60 + Math.random()*(H-120);
+    state.enemies.push({x,y,speed:speedBase+Math.random()*0.6+levelBonus, wob:Math.random()*6.28, stun:0});
+  }
+
+  function maxEnemySpeed(){ let m=0; for(const e of state.enemies){ if(e.speed>m) m=e.speed; } return m; }
+  function syncPlayerSpeed(){
+    state.player.baseSpeed = (modeSel.value==='chaos'?3.6:(modeSel.value==='sandbox'?3.8:3.0));
+    const needed = Math.max(state.player.baseSpeed, maxEnemySpeed() + SPEED_MARGIN);
+    state.player.speed = needed + (state.player.boost||0);
+  }
+
+  function reset(){
+    state.running=false; state.paused=false; state.over=false; state.score=0; state.t=60; state.lives=3;
+    state.player={x:120,y:H/2,vx:0,vy:0,baseSpeed:(modeSel.value==='chaos'?3.6:(modeSel.value==='sandbox'?3.8:3.0)),speed:3.2,dash:0,boost:0,boostT:0,inv:0,spinT:0,heroCd:0, heroT:0};
+    state.enemies=[]; state.snacks=[]; state.cheeses=[];
+    state.pickups={Fries:0,Biscuit:0,Steak:0,Dip:0,Puck:0,Popcorn:0, Celestial:0, Zombie:0};
+    state.rareCounts={gold:0,diamond:0,celestial:0,zombie:0,lightning:0,boltsnack:0};
+    state.wantedLevel=1; state.wantedTimer=0;
+    state.uses={juke:(modeSel.value==='sandbox'?Infinity:5), freeze:(modeSel.value==='sandbox'?Infinity:3), cheese:(modeSel.value==='sandbox'?Infinity:1)};
+    for(let i=0;i<5;i++) spawnSnack();
+    spawnEnemy(true);
+    lastEl.textContent='+0';
+    updateHUD(); draw();
+  }
+
+  function updateHUD(){
+    scoreEl.textContent=state.score; timeEl.textContent=Math.ceil(state.t); livesEl.textContent=state.lives;
+    const hi = +localStorage.getItem('fenrir_hi')||0; hiEl.textContent=hi;
+    wantedEl.textContent = '⭐'.repeat(state.wantedLevel);
+    jukesEl.textContent = (state.uses.juke===Infinity? '∞' : state.uses.juke);
+    freezesEl.textContent = (state.uses.freeze===Infinity? '∞' : state.uses.freeze);
+    cheeseEl.textContent = (state.uses.cheese===Infinity? '∞' : state.uses.cheese);
+    luckEl.textContent = luck.toFixed(1);
+    heroCdEl.textContent = state.player.heroCd>0 ? `${Math.ceil(state.player.heroCd)}s` : 'Ready';
+  }
+
+  // Safe key handling
+  const keys={}; const onceKeys=new Set();
+  addEventListener('keydown',e=>{ const k=(e && typeof e.key==='string')? e.key.toLowerCase() : ''; if(!k) return; keys[k]=true; onceKeys.add(k); });
+  addEventListener('keyup',e=>{ const k=(e && typeof e.key==='string')? e.key.toLowerCase() : ''; if(!k) return; keys[k]=false; });
+  document.querySelectorAll('.dpad button').forEach(b=>{
+    b.addEventListener('touchstart',e=>{e.preventDefault(); const d=b.dataset.d; if(!d) return; keys[d]=true; onceKeys.add(d)});
+    b.addEventListener('touchend',e=>{e.preventDefault(); const d=b.dataset.d; if(!d) return; keys[d]=false});
+  });
+
+  function emSnack(s){ return EMO.snacks[s.k]; }
+  function rarityData(s){ return RARITY.find(r=>r.key===s.rarity)||RARITY[0]; }
+
+  function increaseWanted(){ if(state.wantedLevel < state.maxWanted){ state.wantedLevel++; spawnEnemy(true); state.enemies.forEach(e=> e.speed += 0.25); SFX.star(); updateHUD(); } }
+
+  function useJuke(){ if(state.uses.juke<=0) return; if(state.uses.juke!==Infinity) state.uses.juke--; updateHUD(); SFX.spin(); state.player.inv = 0.6; state.player.spinT = 0.4; state.player.x = clamp(state.player.x + (Math.random()<0.5?-30:30), 40, W-40); state.player.y = clamp(state.player.y + (Math.random()<0.5?-22:22), 40, H-40); }
+  function useFreeze(){ if(state.uses.freeze<=0) return; if(state.uses.freeze!==Infinity) state.uses.freeze--; updateHUD(); SFX.freeze(); for(const e of state.enemies){ e.stun = Math.max(e.stun, 3); } }
+  function useCheese(){ if(state.uses.cheese<=0) return; if(state.uses.cheese!==Infinity) state.uses.cheese--; updateHUD(); SFX.cheese(); const n=14; state.cheeses=[]; for(let i=0;i<n;i++){ const x = 50+Math.random()*(W-100); const y = 50+Math.random()*(H-100); state.cheeses.push({x,y,ttl:10}); } toast('CHEESE TAX! 🧀'); }
+
+  function useHero(){
+    if(state.player.heroCd>0) return; // cooldown
+    state.player.heroCd = HERO_COOLDOWN; state.player.heroT = 1.0; // 1s animation
+    SFX.hero(); toast('Superhero Fenrir! 🦸');
+    for(const e of state.enemies){ e.stun = Math.max(e.stun, 5); }
+    updateHUD();
+  }
+
+  // Invincible helpers
+  let invincibleAlways = false; // owner toggle
+  function startInvincible(ms){
+    state.player.inv = Math.max(state.player.inv, ms/1000);
+  }
+
+  // AUTOPLAY ENGINE
+  function startAuto(durationMs){ autoPlay=true; autoEndAt = durationMs? Date.now()+durationMs : 0; toast('Auto‑play started'); }
+  function stopAuto(){ autoPlay=false; autoEndAt=0; toast('Auto‑play stopped'); }
+
+  function autoLogic(){
+    const p=state.player;
+    // pick closest snack
+    let best=null,bd=1e9; for(const s of state.snacks){ const d=Math.hypot(p.x-s.x,p.y-s.y); if(d<bd){bd=d; best=s;} }
+    let ax=0, ay=0; if(best){ ax = Math.sign(best.x - p.x); ay = Math.sign(best.y - p.y); }
+    // basic dodge: steer away if cop within 110px
+    for(const e of state.enemies){ const d=Math.hypot(p.x-e.x,p.y-e.y); if(d<110){ ax += Math.sign(p.x - e.x)*1.5; ay += Math.sign(p.y - e.y)*1.5; }}
+    // normalize -> velocity
+    const mag=Math.hypot(ax,ay)||1; p.vx=(ax/mag)*p.speed; p.vy=(ay/mag)*p.speed;
+    if(autoNoDie || invincibleAlways) p.inv = Math.max(p.inv, .2); // keep tiny iframes
+    if(autoTargetGoal && state.score>=autoTargetGoal){ stopAuto(); toast('Auto target reached'); }
+  }
+
+  function step(dt){
+    if(!state.running||state.paused||state.over){ onceKeys.clear(); return; }
+    state.t -= dt; if(state.t<=0){ gameOver(); onceKeys.clear(); return; }
+
+    state.wantedTimer += dt; if(state.wantedTimer >= STAR_PERIOD){ state.wantedTimer = 0; increaseWanted(); }
+
+    if(onceKeys.has('e')) useJuke(); if(onceKeys.has('v')) useFreeze(); if(onceKeys.has('g')) useCheese(); if(onceKeys.has('q')) useHero(); onceKeys.clear();
+
+    if(state.player.inv>0) state.player.inv-=dt; if(state.player.spinT>0) state.player.spinT-=dt;
+    if(state.player.boostT>0){ state.player.boostT-=dt; if(state.player.boostT<=0) state.player.boost=0; }
+    if(state.player.heroCd>0){ state.player.heroCd = Math.max(0, state.player.heroCd-dt); }
+    if(state.player.heroT>0){ state.player.heroT = Math.max(0, state.player.heroT-dt); }
+
+    // Auto‑play run
+    if(autoPlay){
+      if(autoEndAt && Date.now()>autoEndAt){ stopAuto(); }
+      else{ autoLogic(); }
+    }
+
+    syncPlayerSpeed();
+
+    const p=state.player; let ax=0, ay=0; const sp=p.speed;
+    if(keys['arrowup']||keys['w']||keys['up']) ay-=1; if(keys['arrowdown']||keys['s']||keys['down']) ay+=1; if(keys['arrowleft']||keys['a']||keys['left']) ax-=1; if(keys['arrowright']||keys['d']||keys['right']) ax+=1;
+    const dash = (keys[' ']||keys['space']||keys['dash']) && p.dash<=0; const mag=Math.hypot(ax,ay)||1; p.vx = (ax/mag)*(dash?sp*2.2:sp); p.vy = (ay/mag)*(dash?sp*2.2:sp);
+    if(dash){ p.dash=1.2; SFX.tone(900,0.05,'square',0.06); }
+    if(p.dash>0) p.dash-=dt; else p.dash=0;
+
+    p.x = clamp(p.x + p.vx*60*dt, 40, W-40); p.y = clamp(p.y + p.vy*60*dt, 40, H-40);
+
+    for(const en of state.enemies){
+      if(en.stun>0){ en.stun-=dt; continue; }
+      const dx=p.x-en.x, dy=p.y-en.y; const m=Math.hypot(dx,dy)||1; const speed = en.speed*(modeSel.value==='chaos'?1.15:1);
+      en.x += dx/m*speed*60*dt + Math.sin(en.wob+=dt*2)*0.6; en.y += dy/m*speed*60*dt + Math.cos(en.wob)*0.6; en.x = clamp(en.x, 35, W-35); en.y = clamp(en.y, 35, H-35);
+    }
+
+    state.snacks.forEach(s=>s.ttl-=dt); state.snacks = state.snacks.filter(s=>s.ttl>0); if(Math.random()<0.03) spawnSnack();
+    for(const c of state.cheeses){ c.ttl-=dt; } state.cheeses = state.cheeses.filter(c=>c.ttl>0);
+
+    for(let i=state.snacks.length-1;i>=0;i--){
+      const s=state.snacks[i]; if(Math.hypot(p.x-s.x,p.y-s.y)<40){
+        state.snacks.splice(i,1);
+        const base = emSnack(s).base; const rarKey = s.rarity; const rar = rarityData(s) || {mult:1,label:'Common'};
+        let mult = rar.mult, label = rar.label;
+        if(rarKey==='admin'){ mult = 34; label='Admin'; state.uses.juke = Infinity; state.uses.freeze = Infinity; state.uses.cheese = 50; state.player.boost = Math.max(state.player.boost, ADMIN_BOOST.amt); state.player.boostT = Math.max(state.player.boostT, ADMIN_BOOST.time); }
+        const raw = base*mult; const kept = Math.max(1, Math.floor(raw*KEEP_RATE)); const tax = raw-kept;
+        state.score += kept; const nm = emSnack(s).name; state.pickups[nm] = (state.pickups[nm]||0)+1; if(rarKey!=='common' && rarKey!=='admin'){ state.rareCounts[rarKey] = (state.rareCounts[rarKey]||0)+1; if(rarKey==='celestial') state.pickups.Celestial++; if(rarKey==='zombie') state.pickups.Zombie++; if(rarKey==='lightning') state.rareCounts.lightning++; if(rarKey==='boltsnack') state.rareCounts.boltsnack++; }
+        lastEl.textContent = `+${kept} (${label} ${nm} · tax ${tax})`;
+        SFX.pickup(kept);
+        if(rarKey==='gold'){ state.player.boost = Math.max(state.player.boost, GOLD_BOOST.amt); state.player.boostT = Math.max(state.player.boostT, GOLD_BOOST.time); }
+        if(rarKey==='diamond'){ state.player.boost = Math.max(state.player.boost, DIAMOND_BOOST.amt); state.player.boostT = Math.max(state.player.boostT, DIAMOND_BOOST.time); }
+        if(rarKey==='celestial'){ state.player.boost = Math.max(state.player.boost, CELESTIAL_BOOST.amt); state.player.boostT = Math.max(state.player.boostT, CELESTIAL_BOOST.time); }
+        if(rarKey==='lightning'){ state.player.boost = Math.max(state.player.boost, LIGHTNING_BOOST.amt); state.player.boostT = Math.max(state.player.boostT, LIGHTNING_BOOST.time); }
+        if(rarKey==='boltsnack'){ state.player.boost = Math.max(state.player.boost, LIGHTNING_BOOST.amt*1.1); state.player.boostT = Math.max(state.player.boostT, LIGHTNING_BOOST.time+1); }
+        spawnSnack();
+      }
+    }
+
+    for(const en of state.enemies){ for(const c of state.cheeses){ if(Math.hypot(en.x-c.x,en.y-c.y)<24){ en.stun=Math.max(en.stun, CHEESE_STUN); } } }
+    for(const c of state.cheeses){ if(Math.hypot(state.player.x-c.x,state.player.y-c.y)<28){ state.player.boost=Math.max(state.player.boost, CHEESE_PLAYER_BOOST); state.player.boostT=Math.max(state.player.boostT, 2.5); } }
+
+    if(!(autoNoDie||invincibleAlways) && state.player.inv<=0){ for(const e of state.enemies){ if(e.stun>0) continue; if(Math.hypot(state.player.x-e.x,state.player.y-e.y)<48){ hit(); break; } } }
+
+    draw();
+  }
+
+  function hit(){ state.lives--; SFX.hit(); if(state.lives<=0){ gameOver(); return; } state.player.x = 120; state.player.y = H/2; state.player.dash=0; state.player.inv=0.8; updateHUD(); }
+
+  async function gameOver(){
+    state.over=true; state.running=false; updateHUD();
+    const hi = +localStorage.getItem('fenrir_hi')||0; if(state.score>hi){ localStorage.setItem('fenrir_hi', state.score); }
+    const totalSnacks = Object.keys(state.pickups).reduce((a,k)=>a+(state.pickups[k]||0),0);
+    const timeSurvived = 60 - Math.max(0, state.t);
+    try{ await Backend.submitBest({timeSurvived:+timeSurvived.toFixed(1), snacks: totalSnacks, score: state.score, wanted: state.wantedLevel, mode: modeSel.value, diff: diffSel.value, luck: luck, at: Date.now()}); }catch(e){ console.error(e); }
+    draw(true);
+  }
+
+  function drawSnack(s){ const rd = rarityData(s) || {key:'common',label:'Common',color:'#cfd7f4'}; cx.save(); if(s.rarity!=='common' && s.rarity!=='admin'){ cx.beginPath(); const c = s.rarity==='gold'? 'rgba(255,204,77,0.32)': s.rarity==='diamond'? 'rgba(126,226,255,0.32)': s.rarity==='celestial'? 'rgba(194,155,255,0.32)' : s.rarity==='zombie'? 'rgba(124,252,0,0.32)' : s.rarity==='lightning'? 'rgba(169,182,255,0.32)' : 'rgba(191,199,255,0.32)'; cx.fillStyle=c; cx.arc(s.x, s.y, 30, 0, Math.PI*2); cx.fill(); } cx.font='28px serif'; cx.textAlign='center'; cx.textBaseline='middle'; const emoji = (s.rarity==='lightning'||s.rarity==='boltsnack') ? '⚡' : emSnack(s).e; cx.fillText(emoji, s.x, s.y); cx.strokeStyle = s.rarity==='gold'? '#7a5d12' : s.rarity==='diamond'? '#1e6b85' : s.rarity==='celestial'? '#6d55a8' : s.rarity==='zombie'? '#2a6a2a' : s.rarity==='lightning'? '#3646aa' : s.rarity==='boltsnack'? '#6674ff' : '#2a3354'; cx.lineWidth = 2; cx.beginPath(); cx.arc(s.x, s.y, 20, 0, Math.PI*2); cx.stroke(); if(s.rarity!=='common' && s.rarity!=='admin'){ cx.fillStyle = rd.color; cx.font='10px system-ui'; cx.fillText(rd.label, s.x, s.y-26);} if(s.rarity==='admin'){ cx.fillStyle='#ffd'; cx.fillText('🛡️', s.x, s.y-26);} cx.restore(); }
+  function drawCheese(c){ cx.font='22px serif'; cx.textAlign='center'; cx.textBaseline='middle'; cx.fillText(EMO.cheese, c.x, c.y); }
+  function drawWantedStars(){ const x0 = W - 150, y0 = 18; cx.font='18px system-ui'; cx.textAlign='left'; cx.textBaseline='top'; cx.fillStyle='#ffd54a'; for(let i=0;i<state.wantedLevel;i++){ cx.fillText('⭐', x0 + i*22, y0); } }
+
+  function draw(ended=false){
+    cx.clearRect(0,0,W,H);
+    cx.fillStyle='#0b1222'; cx.fillRect(0,0,W,H);
+    cx.strokeStyle='#1b2440'; cx.lineWidth=1; cx.setLineDash([2,18]); for(let x=20;x<W;x+=40){ cx.beginPath(); cx.moveTo(x,0); cx.lineTo(x,H); cx.stroke(); } cx.setLineDash([]);
+    state.cheeses.forEach(drawCheese);
+    state.snacks.forEach(drawSnack);
+    cx.font='34px serif'; cx.textAlign='center'; cx.textBaseline='middle'; cx.fillText(state.player.heroT>0? EMO.cape : EMO.fenrir, state.player.x, state.player.y);
+    if(state.player.heroT>0){ cx.font='26px serif'; cx.fillText(EMO.sword, state.player.x+22, state.player.y-18); }
+    if(state.player.spinT>0){ cx.font='28px serif'; cx.fillText(EMO.swirl, state.player.x, state.player.y-30); }
+    cx.font='28px serif'; state.enemies.forEach(e=>{ cx.fillText('👮', e.x, e.y); if(e.stun>0){ cx.font='20px serif'; cx.fillText('💫', e.x, e.y-26); cx.font='28px serif'; } });
+    cx.fillStyle='rgba(0,0,0,.35)'; cx.fillRect(10,10,700,70);
+    cx.fillStyle='#cfe1ff'; cx.font='16px system-ui, sans-serif';
+    cx.fillText(`Score ${state.score}`, 70, 28); cx.fillText(`Time ${Math.ceil(state.t)}s`, 160, 28); cx.fillText(`Lives ${state.lives}`, 250, 28);
+    cx.font='14px system-ui'; cx.fillStyle='#9fb1d9'; cx.fillText(`${lastEl.textContent}`, 170, 54);
+    drawWantedStars();
+    if(ended){ cx.fillStyle='rgba(0,0,0,.55)'; cx.fillRect(0,0,W,H); cx.fillStyle='#e9edf7'; cx.font='bold 36px system-ui'; cx.fillText('HEIST COMPLETE', W/2, H/2-10); cx.font='18px system-ui'; cx.fillText(`Final Score: ${state.score}`, W/2, H/2+24); cx.fillText('Press ▶ Start Heist to play again', W/2, H/2+48); }
+    updateHUD();
+  }
+
+  // Loop
+  let last=0; function loop(ts){ const dt = (ts-last)/1000; last=ts; step(dt); requestAnimationFrame(loop); } requestAnimationFrame(loop);
+
+  // Buttons
+  startBtn.onclick=()=>{ if(window.__BANNED__){ toast('You are banned. Appeal below.'); return; } if(state.over) reset(); state.running=true; state.paused=false; };
+  pauseBtn.onclick=()=>{ state.paused=!state.paused; };
+  resetBtn.onclick=()=>reset(); modeSel.onchange=()=>reset(); diffSel.onchange=()=>reset();
+
+  // Share / Copy
+  function buildRunText(){ const mode = modeSel.value, diff = diffSel.value; const p = state.pickups; const rc = state.rareCounts; const parts = [ `Fenrir: Snack Bandit — V9`, `Score: ${state.score} | Mode: ${mode} | Difficulty: ${diff} | Wanted: ${state.wantedLevel}⭐ | Luck: ${luck.toFixed(1)}x`, `Pickups → Fries:${p.Fries} Biscuit:${p.Biscuit} Steak:${p.Steak} Dip:${p.Dip} Puck:${p.Puck} Popcorn:${p.Popcorn} Celestial:${p.Celestial} Zombie:${p.Zombie}`, `Rarities → Gold:${rc.gold} Diamond:${rc.diamond} Celestial:${rc.celestial} Zombified:${rc.zombie} Lightning:${rc.lightning} Bolt:${rc.boltsnack}`, `Beat my score!` ]; return parts.join('\n'); }
+  function toast(msg='Copied!'){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), 1400);} 
+  copyBtn.onclick=async()=>{ try{ await navigator.clipboard.writeText(buildRunText()); toast('Run stats copied to clipboard!'); } catch(e){ toast('Clipboard blocked'); } };
+  shareBtn.onclick=async()=>{ const text = buildRunText(); if(navigator.share){ try{ await navigator.share({title:'Fenrir: Snack Bandit — Run', text}); } catch(e){} } else { try{ await navigator.clipboard.writeText(text); toast('Run stats copied! Paste into Discord.'); } catch(e){} window.open('https://discord.com/app','_blank'); } };
+
+  // Auto wiring & Invincible
+  if(autoStartNormal){ autoStartNormal.onclick=()=>{ autoNoDie = !!autoNoDieNormal?.checked; startAuto(5*60*1000); }; }
+  if(autoStartOwner){ autoStartOwner.onclick=()=>{ autoNoDie = !!autoNoDieOwner?.checked; autoTargetGoal = (+autoTargetInput?.value||null); startAuto(0); }; }
+  if(autoStopBtn){ autoStopBtn.onclick = ()=> stopAuto(); }
+  if(inv3mBtn){ inv3mBtn.onclick = ()=>{ startInvincible(3*60*1000); toast('Invincible for 3 minutes'); }; }
+  if(invToggleBtn){ invToggleBtn.onclick = ()=>{ invincibleAlways = !invincibleAlways; toast(invincibleAlways? 'Owner INVINCIBLE: ON' : 'Owner INVINCIBLE: OFF'); }; }
+
+  // ---------- Cheats logic ----------
+  function unlockState(){ const hi = +localStorage.getItem('fenrir_hi')||0; const hasNormal = hi>=10000; const isOwner = !!localStorage.getItem('fenrir_owner'); normalWrap.style.display = hasNormal? 'block':'none'; ownerWrap.style.display = isOwner? 'block':'none'; unlockMsg.textContent = hasNormal? 'Normal cheats unlocked ✔️' : `Need High Score ≥ 10,000 (current ${hi})`; }
+  tryUnlockBtn.onclick = unlockState; unlockState();
+  ownerGrantBtn.onclick = ()=>{ const code = (ownerCodeEl.value||'').trim(); if(code && code.length>=3){ localStorage.setItem('fenrir_owner','1'); toast('Owner cheats granted for this browser'); unlockState(); } };
+
+  applyLuckBtn.onclick = ()=>{ const v = Math.max(0, Math.min(10, +luckInput.value||0)); luck = v; toast(`Luck set to ${luck.toFixed(1)}x`); };
+  applyOwnerLuck.onclick = ()=>{ luck = +ownerLuck.value||0; toast(`Owner Luck set to ${luck.toFixed(1)}x`); };
+
+  applyHi.onclick = ()=>{ const v = Math.max(0, Math.min(10000000, Math.floor(+setHi.value||0))); localStorage.setItem('fenrir_hi', v); toast('High score saved locally'); unlockState(); };
+
+  freezeCopsBtn.onclick = ()=>{ for(const e of state.enemies){ e.stun = Math.max(e.stun, 5); } toast('All cops frozen for 5s'); };
+  giveAdminBtn.onclick = ()=>{ adminNextPickup=true; state.uses.cheese = Math.max(state.uses.cheese, 50); toast('Next snack is ADMIN mutation!'); };
+  applySnacks.onclick = ()=>{ const parts = (snackSet.value||'').split(',').map(s=>s.trim()).filter(Boolean); if(parts.length===6){ EMO.snacks = [0,1,2,3,4,5].map((i)=>({e:parts[i], name: ['Fries','Biscuit','Steak','Dip','Puck','Popcorn'][i], base: [10,12,20,14,15,16][i]})); toast('Snack emoji set updated'); } else { toast('Enter exactly 6 emoji/images'); } };
+
+  adminBan.onclick = async ()=>{ const t=(targetUid.value||'').trim(); if(!t){ toast('Enter target UID'); return; } await Backend.ban(t); toast('Ban attempted'); };
+  adminKick.onclick = ()=>{ state.over=true; state.running=false; toast('Kicked (local)'); };
+  adminSetHi.onclick = async ()=>{ const t=(targetUid.value||'').trim(); if(!t){ toast('Enter target UID'); return; } await Backend.setOtherUserBest(t,{time:9999,snacks:99999}); toast('Set best attempted'); };
+
+  // Init backend + game
+  initBackend().then(()=>reset());
+
+  // ---------------- Self-tests (dev) ----------------
+  (function runSelfTests(){
+    try{
+      console.group('Fenrir V9 self-tests');
+      console.assert(isCleanName('Fenrir123')===true, 'clean name should pass');
+      console.assert(isCleanName('xx')===false, 'name <3 chars should fail');
+      console.assert(isCleanName('baD_fUck_Name')===false, 'banned word should fail');
+      console.assert(typeof randomUsername()==='string' && randomUsername().length>=3, 'randomUsername returns string');
+      console.assert(BASE_WEIGHTS.zombie===0.0005, 'zombie base chance 0.05%');
+      console.assert(getWeights().common>0 && getWeights().gold>0, 'weights compute');
+      console.groupEnd();
+    }catch(e){ console.warn('Self-tests error', e); }
+  })();
+  </script>
+</body>
+</html>
